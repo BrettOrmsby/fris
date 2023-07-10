@@ -1,0 +1,45 @@
+{
+  "name": "find-replace",
+  "version": "0.0.0",
+  "description": "A syntax aware find and replace",
+  "main": "/dist/index.js",
+  "scripts": {
+    "dev": "npx tsc --watch",
+    "lint": "eslint --ext .js,.ts .",
+    "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
+    "test": "jest --testPathPattern=tests/",
+    "build": "tsc",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint && npm format",
+    "preversion": "npm run && npm run lint && npm format"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "keywords": [
+    "find",
+    "replace",
+    "syntax"
+  ],
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "author": "Brett Ormsby",
+  "license": "MIT",
+  "dependencies": {
+    "shiki": "^0.14.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.2",
+    "@typescript-eslint/eslint-plugin": "^5.61.0",
+    "@typescript-eslint/parser": "^5.61.0",
+    "eslint": "^8.44.0",
+    "eslint-config-prettier": "^8.8.0",
+    "jest": "^29.6.1",
+    "prettier": "^3.0.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.1.6"
+  }
+}
