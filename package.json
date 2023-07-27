@@ -1,13 +1,13 @@
 {
-  "name": "find-replace",
+  "name": "fris",
   "version": "0.0.0",
-  "description": "A syntax aware find and replace",
+  "description": "Find and replace within syntax scopes",
   "main": "/dist/index.js",
   "scripts": {
     "dev": "npx tsc --watch",
-    "lint": "eslint --ext .js,.ts .",
+    "lint": "eslint --ext .js,.ts . --ignore-path .gitignore --fix",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
-    "test": "jest --testPathPattern=tests/",
+    "test": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js",
     "build": "tsc",
     "prepare": "npm run build",
     "prepublishOnly": "npm test && npm run lint && npm format",
@@ -29,10 +29,15 @@
   "author": "Brett Ormsby",
   "license": "MIT",
   "dependencies": {
+    "@types/prompts": "^2.4.4",
+    "kolorist": "^1.8.0",
+    "minimist": "^1.2.8",
+    "prompts": "^2.4.2",
     "shiki": "^0.14.3"
   },
   "devDependencies": {
     "@types/jest": "^29.5.2",
+    "@types/minimist": "^1.2.2",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
     "eslint": "^8.44.0",
