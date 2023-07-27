@@ -9,6 +9,6 @@
     "skipLibCheck": true,
     "resolveJsonModule": true
   },
-  "include": ["src"],
+  "include": ["src", "src/**/*.json"],
   "exclude": ["/node_modules", "tests"]
 }

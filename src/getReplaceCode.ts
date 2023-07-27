@@ -44,7 +44,7 @@ export default function getReplaceCode(
   // Get theme-specific colours
   const bg = ansi256Bg(hexToANSI256(colors["editor.background"]));
   const matchBackgroundColor = ansi256Bg(
-    hexToANSI256(colors["editor.findMatchHighlightBackground"]),
+    hexToANSI256(colors["editor.findMatchHighlightBackground"] || "#FFFF00"),
   );
   const lineNumberColor = ansi256(
     hexToANSI256(colors["editorLineNumber.foreground"]),

@@ -5,7 +5,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import minimist from "minimist";
 import prompts from "prompts";
-import { BUNDLED_LANGUAGES, type Lang } from "shiki";
+import { BUNDLED_LANGUAGES, Theme, type Lang } from "shiki";
 
 // Get all supported shiki languages
 const allLanguages = BUNDLED_LANGUAGES.map((language) =>
@@ -24,6 +24,7 @@ export type FRISArgs = {
   all: boolean;
   help: boolean;
   version: boolean;
+  theme: Theme;
 };
 
 /*
@@ -32,7 +33,7 @@ export type FRISArgs = {
 export async function getCLIArgs(): Promise<FRISArgs> {
   let argv = normalizeArgs();
   // When running help or version, the other args are not important
-  if (argv.help || argv.version) {
+  if (argv.help || argv.version || argv.theme) {
     return argv;
   }
 
@@ -60,7 +61,7 @@ export async function getCLIArgs(): Promise<FRISArgs> {
             tryGetLanguage(argv.language, filepath.split(".")[1])
               ? null
               : "autocomplete",
-          message: "Language",
+          message: "Language: ",
           choices: allLanguages.map((lang) => {
             return { title: lang };
           }),
@@ -140,6 +141,7 @@ function normalizeArgs(): FRISArgs {
     picker: false,
     regex: false,
     all: false,
+    theme: null,
     help: false,
     version: false,
   };
@@ -153,6 +155,8 @@ function normalizeArgs(): FRISArgs {
           !("picker" in argv) &&
           !("h" in argv) &&
           !("help" in argv) &&
+          !("t" in argv) &&
+          !("theme" in argv) &&
           !("version" in argv)
         ) {
           if (value.length < 1) {
@@ -202,6 +206,10 @@ function normalizeArgs(): FRISArgs {
       case "h":
       case "help":
         normalizedArgs.help = true;
+        break;
+      case "t":
+      case "theme":
+        normalizedArgs.theme = ("" + value) as Theme;
         break;
       case "version":
         normalizedArgs.version = true;

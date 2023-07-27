@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
  * Script for running the fris program
  */
@@ -12,7 +13,9 @@ import { escapeStringToRegex } from "./utils.js";
 import { readFile, writeFile } from "fs/promises";
 import * as path from "path";
 import { fileURLToPath } from "url";
-import { bold, green, red, yellow } from "kolorist";
+import { bold, green, link, red, yellow } from "kolorist";
+import { Theme, BUNDLED_THEMES } from "shiki";
+import prompts from "prompts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -33,6 +36,7 @@ if (args.help) {
 
   Usage:
     fris <file_path> <find_pattern> <replacer> [options]
+    fris -t THEME | --theme=THEME
     fris -p | --picker
     fris -h | --help
     fris --version
@@ -40,6 +44,7 @@ if (args.help) {
   Options:
     -h --help                Show this screen.
     --version                Show version.
+    -t THEME --theme=THEME   Set a new code highlighting theme.
     -p --picker              Show the picker and autofill with other present options.
     -r --regex               Use regex when finding and replacing.
     -a --all                 Replace all occurrences without prompting.
@@ -66,6 +71,44 @@ if (args.version) {
   const packageJSON = JSON.parse(file);
   console.log(packageJSON.version);
   process.exit(0);
+}
+
+/*
+ * SET THEME
+ */
+if (args.theme) {
+  if (!BUNDLED_THEMES.includes(args.theme)) {
+    let file;
+    try {
+      file = await readFile(__dirname + "/storage.json", "utf8");
+    } catch (error) {
+      // Ignore eslint empty block
+    }
+    const theme: Theme = file ? JSON.parse(file).theme : "dracula";
+    args.theme = (
+      await prompts([
+        {
+          name: "newTheme",
+          type: "autocomplete",
+          message: "Theme: ",
+          choices: BUNDLED_THEMES.map((theme) => {
+            return { title: theme };
+          }),
+          initial: theme,
+        },
+      ])
+    ).newTheme;
+  }
+  try {
+    await writeFile(
+      __dirname + "/storage.json",
+      JSON.stringify({ theme: args.theme }),
+    );
+    console.log(green("Theme stored"));
+  } catch (error) {
+    console.error(red("✖ ") + "Unable to store theme");
+  }
+  process.exit(1);
 }
 
 /*
@@ -262,7 +305,10 @@ async function replace(code: string, occurrences: FindResult[]) {
     console.error(
       red("✖ ") +
         "Unable to write to file: " +
-        path.resolve(process.cwd(), args.file) +
+        link(
+          path.resolve(process.cwd(), args.file),
+          path.resolve(process.cwd(), args.file),
+        ) +
         ", " +
         error.message,
     );

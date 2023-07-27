@@ -1,7 +1,7 @@
 {
   "name": "fris",
   "version": "0.0.0",
-  "description": "Find and replace within syntax scopes",
+  "description": "CLI to find and replace within syntax scopes",
   "main": "/dist/index.js",
   "scripts": {
     "dev": "npx tsc --watch",
@@ -25,6 +25,7 @@
   "files": [
     "dist"
   ],
+  "bin": "dist/index.js",
   "type": "module",
   "author": "Brett Ormsby",
   "license": "MIT",
