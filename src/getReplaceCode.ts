@@ -103,7 +103,7 @@ export default function getReplaceCode(
     }
     // Add a new line if there are still lines to create
     if (i !== endLine) {
-      output += "\n";
+      output += "\x1b[K\n";
     }
   }
   return bg(output);
