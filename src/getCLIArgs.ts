@@ -115,6 +115,7 @@ export async function getCLIArgs(): Promise<FRISArgs> {
       },
     );
     argv = { ...argv, ...responses };
+    console.log("");
   }
 
   // Try to find the language to use for tokenizing
@@ -173,9 +174,9 @@ function normalizeArgs(): FRISArgs {
             );
           }
         }
-        normalizedArgs.file = "" + value[0] || "";
-        normalizedArgs.find = "" + value[1] || "";
-        normalizedArgs.replace = "" + value[2] || "";
+        normalizedArgs.file = value[0] ? value[0].toString() : "";
+        normalizedArgs.find = value[1] ? value[1].toString() : "";
+        normalizedArgs.replace = value[2] ? value[2].toString() : "";
         break;
       case "p":
       case "picker":
