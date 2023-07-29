@@ -1,7 +1,7 @@
 {
   "name": "fris",
   "version": "0.0.0",
-  "description": "CLI to find and replace within syntax scopes",
+  "description": "CLI to find and replace text within syntax scopes",
   "main": "/dist/index.js",
   "scripts": {
     "dev": "npx tsc --watch",
