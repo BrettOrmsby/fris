@@ -101,9 +101,12 @@ export default function getReplaceCode(
         output += color(token.content);
       }
     }
+
+    // Highlight the full line
+    output += "\x1b[K";
     // Add a new line if there are still lines to create
     if (i !== endLine) {
-      output += "\x1b[K\n";
+      output += "\n";
     }
   }
   return bg(output);
