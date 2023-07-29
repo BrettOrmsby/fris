@@ -1,6 +1,6 @@
 # Fris
 
-_CLI to find and replace text within syntax scopes_
+_A command line tool to find and replace text within syntax scopes._
 
 ![Example](assets/example.gif)
 

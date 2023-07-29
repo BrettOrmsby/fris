@@ -1,7 +1,7 @@
 {
   "name": "fris",
   "version": "0.0.0",
-  "description": "CLI to find and replace text within syntax scopes",
+  "description": "A command line tool to find and replace text within syntax scopes.",
   "main": "/dist/index.js",
   "scripts": {
     "dev": "npx tsc --watch",
@@ -10,8 +10,8 @@
     "test": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js",
     "build": "tsc",
     "prepare": "npm run build",
-    "prepublishOnly": "npm test && npm run lint && npm format",
-    "preversion": "npm run && npm run lint && npm format"
+    "prepublishOnly": "npm test && npm run lint && npm run format",
+    "preversion": "npm run && npm run lint && npm run format"
   },
   "repository": {
     "type": "git",
@@ -30,13 +30,13 @@
   "author": "Brett Ormsby",
   "license": "MIT",
   "dependencies": {
-    "@types/prompts": "^2.4.4",
     "kolorist": "^1.8.0",
     "minimist": "^1.2.8",
     "prompts": "^2.4.2",
     "shiki": "^0.14.3"
   },
   "devDependencies": {
+    "@types/prompts": "^2.4.4",
     "@types/jest": "^29.5.2",
     "@types/minimist": "^1.2.2",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
