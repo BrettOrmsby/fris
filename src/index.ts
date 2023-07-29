@@ -2,9 +2,6 @@
 /*
  * Script for running the fris program
  */
-// node dist/index.js ./script-test.ts "404" "###" -s "comment.**" -a
-// node dist/index.js ./script-test.ts "404" "###"
-// node dist/index.js ./script-test.ts "404" "###" -a
 
 import { FRISArgs, getCLIArgs } from "./getCLIArgs.js";
 import find, { type FindResult } from "./find.js";
@@ -42,14 +39,15 @@ if (args.help) {
     fris --version
   
   Options:
-    -h --help                Show this screen.
-    --version                Show version.
-    -t THEME --theme=THEME   Set a new code highlighting theme.
-    -p --picker              Show the picker and autofill with other present options.
-    -r --regex               Use regex when finding and replacing.
-    -a --all                 Replace all occurrences without prompting.
-    -s SCOPE --scope=SCOPE   Scope to find all occurrences within.
-    -i SCOPE --ignore=SCOPE  Scope to ignore all found occurrences within.
+    -h --help                        Show this screen.
+    --version                        Show version.
+    -t THEME --theme=THEME           Set a new code highlighting theme.
+    -p --picker                      Show the picker and autofill with other present options.
+    -r --regex                       Use regex when finding and replacing.
+    -a --all                         Replace all occurrences without prompting.
+    -s SCOPE --scope=SCOPE           Scope to find all occurrences within.
+    -i SCOPE --ignore=SCOPE          Scope to ignore all found occurrences within.
+    -l LANGUAGE --language=LANGUAGE  Language to tokenize the code with
     
   User Actions:
     Picker:  
@@ -173,7 +171,6 @@ while (true) {
       "\n\n",
   );
   const keyPressed = await keypress();
-
   // Quit: ^C / Q
   if (keyPressed.length > 0 && (keyPressed[0] === 3 || keyPressed[0] === 113)) {
     console.log(red("Quit"));
@@ -224,6 +221,7 @@ while (true) {
  * Wait for a key to be pressed and return the key
  */
 async function keypress(): Promise<number[]> {
+  process.stdin.resume();
   process.stdin.setRawMode(true);
   return await new Promise((resolve) =>
     process.stdin.once("data", (data) => {
