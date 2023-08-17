@@ -146,5 +146,5 @@ If you are using VSCode as a editor you can see what scopes a token belongs to u
 3. Press enter.
 4. Click the token you want to inspect.
 5. The scopes will be listed beside `textmate scopes`.
-6. To Exit the scope inspector, you can enter the command .palette, type in `Developer: Inspect Editor Tokens and Scopes` and press enter, like how you originally entered the inspector.
+6. To Exit the scope inspector, you can enter the command palette, type in `Developer: Inspect Editor Tokens and Scopes` and press enter, like how you originally entered the inspector.
 7. Alternatively, you can create a keybinding to enter and exit the scope inspector.
