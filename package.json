@@ -30,15 +30,16 @@
   "author": "Brett Ormsby",
   "license": "MIT",
   "dependencies": {
+    "glob": "^10.3.10",
     "kolorist": "^1.8.0",
     "minimist": "^1.2.8",
     "prompts": "^2.4.2",
     "shiki": "^0.14.3"
   },
   "devDependencies": {
-    "@types/prompts": "^2.4.4",
     "@types/jest": "^29.5.2",
     "@types/minimist": "^1.2.2",
+    "@types/prompts": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
     "eslint": "^8.44.0",

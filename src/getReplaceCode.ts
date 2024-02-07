@@ -6,7 +6,7 @@ import tokenize, { getThemeColours } from "./tokenize.js";
 import { Lang } from "shiki";
 import { ansi256, ansi256Bg } from "kolorist";
 
-// Number of lines to show around the result, recommend a odd number
+// Number of lines to show around the result, recommend an odd number
 const NUMBER_LINES_SHOWN = 7;
 
 export default function getReplaceCode(

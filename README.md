@@ -28,7 +28,7 @@ Output:
 FRIS, Find and Replace In Scopes
 
   Usage:
-    fris <file_path> <find_pattern> <replacer> [options]
+    fris <file_path_or_glob> <find_pattern> <replacer> [options]
     fris -t THEME | --theme=THEME
     fris -p | --picker
     fris -h | --help
@@ -43,7 +43,6 @@ FRIS, Find and Replace In Scopes
     -a --all                         Replace all occurrences without prompting.
     -s SCOPE --scope=SCOPE           Scope to find all occurrences within.
     -i SCOPE --ignore=SCOPE          Scope to ignore all found occurrences within.
-    -l LANGUAGE --language=LANGUAGE  Language to tokenize the code with
 
   User Actions:
     Picker:
@@ -58,7 +57,7 @@ FRIS, Find and Replace In Scopes
 ### Command Line Arguments
 
 ```bash
-fris <file_path> <find_pattern> <replacer> [options]
+fris <file_path_or_glob> <find_pattern> <replacer> [options]
 ```
 
 Fris can be run with all the configuration provided by the command line.
@@ -69,9 +68,13 @@ Fris can be run with all the configuration provided by the command line.
 fris path/to/file.js "code" "codeSnippet" -i "string.**"
 ```
 
-#### \<file_path\>
+#### \<file_path_or_glob\>
 
-The location of the file to complete the finding and replacing on.
+The location of the file to complete the finding and replacing on. You can also enter a glob to replace occurrences in multiple files:
+
+```bash
+fris "src/**/*.ts" "code" "codeSnippet" -i "string.**"
+```
 
 #### \<find_pattern\>
 
@@ -96,10 +99,6 @@ Only results that are in the scope provided will be found. The scope can be a gl
 #### -i SCOPE | --ignore=SCOPE
 
 Only results that are in **not** the scope provided will be found. The scope can be a glob-like pattern. For example, `*` matches one section and `**` match any section. If the pattern is `string.**`, all the following scopes will match it: `string.quoted.single.ts`, `string.quoted.double.ts` and `string.template.ts`.
-
-#### -l LANGUAGE | --language=LANGUAGE
-
-Fris tries to infer the language of the code based on the file extension. You can use this flag to specify the language if the file extension is not a valid language alias, or to overload the default language.
 
 #### -p | --picker
 

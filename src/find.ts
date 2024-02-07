@@ -9,6 +9,7 @@ import type { Lang } from "shiki";
 // Interfaces copied from shiki as they are not exported
 interface IThemedTokenScopeExplanation {
   scopeName: string;
+  // eslint-disable-next-line
   themeMatches: any[];
 }
 interface IThemedTokenExplanation {
@@ -38,6 +39,13 @@ export default function find(
 ): FindResult[] {
   const results: FindResult[] = [];
   const tokens = tokenize(code, options.lang);
+  const findRegex =
+    typeof pattern === "string"
+      ? escapeStringToRegex(pattern, "g")
+      : new RegExp(pattern, pattern.flags + "g");
+  const scope = options.scope ? globToRegex(options.scope) : /^.*$/;
+  // /^\b\B$/ matches nothing
+  const ignore = options.ignore ? globToRegex(options.ignore) : /^\b\B$/;
 
   // Keep track of positions
   let linePos = -1;
@@ -46,24 +54,17 @@ export default function find(
     linePos += 1;
     charPos = 0;
     for (const token of line) {
-      // Check if the token matches the scopes
-      const matchesScope =
-        (options.scope &&
-          explanationMatchesScopePattern(token.explanation, options.scope)) ||
-        !options.scope;
-      const matchesIgnore =
-        options.ignore &&
-        explanationMatchesScopePattern(token.explanation, options.ignore);
+      const matchesScope = explanationMatchesScopePattern(
+        token.explanation,
+        scope,
+      );
+      const matchesIgnore = explanationMatchesScopePattern(
+        token.explanation,
+        ignore,
+      );
       if (matchesScope && !matchesIgnore) {
         // Get any matches
-        const matches = [
-          ...token.content.matchAll(
-            typeof pattern === "string"
-              ? escapeStringToRegex(pattern, "g")
-              : new RegExp(pattern, pattern.flags + "g"),
-          ),
-        ];
-
+        const matches = [...token.content.matchAll(findRegex)];
         // Add all matches to the return results value
         matches.forEach((match) => {
           results.push({
@@ -81,7 +82,6 @@ export default function find(
       charPos += token.content.length;
     }
   }
-
   return results;
 }
 
@@ -90,14 +90,14 @@ export default function find(
  */
 function explanationMatchesScopePattern(
   explanations: IThemedTokenExplanation[],
-  pattern: string,
+  pattern: RegExp,
 ): boolean {
   if (!explanations) {
     return false;
   }
   for (const explanation of explanations) {
     for (const scopeExplanation of explanation.scopes) {
-      if (globToRegex(pattern).test(scopeExplanation.scopeName)) {
+      if (pattern.test(scopeExplanation.scopeName)) {
         return true;
       }
     }

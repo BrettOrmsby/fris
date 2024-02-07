@@ -10,9 +10,10 @@ import { escapeStringToRegex } from "./utils.js";
 import { readFile, writeFile } from "fs/promises";
 import * as path from "path";
 import { fileURLToPath } from "url";
-import { bold, green, link, red, yellow } from "kolorist";
-import { Theme, BUNDLED_THEMES } from "shiki";
+import { blue, bold, green, link, red, yellow } from "kolorist";
+import { Theme, BUNDLED_THEMES, Lang, BUNDLED_LANGUAGES } from "shiki";
 import prompts from "prompts";
+import { sync } from "glob";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -47,7 +48,6 @@ if (args.help) {
     -a --all                         Replace all occurrences without prompting.
     -s SCOPE --scope=SCOPE           Scope to find all occurrences within.
     -i SCOPE --ignore=SCOPE          Scope to ignore all found occurrences within.
-    -l LANGUAGE --language=LANGUAGE  Language to tokenize the code with
     
   User Actions:
     Picker:  
@@ -112,22 +112,74 @@ if (args.theme) {
 /*
  * MAIN PROGRAM
  */
-// Get the code and find the results
-let code;
-try {
-  code = await readFile(path.resolve(process.cwd(), args.file), "utf8");
-} catch (error) {
-  console.error(
-    red("✖ ") +
-      "Unable to read file: " +
-      path.resolve(process.cwd(), args.file) +
-      ", " +
-      error.message,
-  );
-  process.exit(1);
+
+// Get all supported shiki languages
+const allLanguages = BUNDLED_LANGUAGES.map((language) =>
+  language.aliases ? [language.id, ...language.aliases] : language.id,
+).flat() as Lang[];
+
+// Get all matching files with results
+type CodeSearchFile = {
+  fileName: string;
+  filePath: string;
+  code: string;
+  language: Lang;
+  findResults: FindResult[];
+};
+const files: CodeSearchFile[] = [];
+
+for (const file of sync(args.file)) {
+  const fullFile = path.resolve(process.cwd(), file);
+
+  // Read the code from the file
+  let code: string;
+  try {
+    code = await readFile(fullFile, "utf8");
+  } catch (error) {
+    console.error(
+      `${red("✖ ")} Unable to read file: ${link(file, fullFile)}, ${
+        error.message
+      }`,
+    );
+    process.exit(1);
+  }
+
+  // Get the shiki language using the file extension or by prompting
+  let language;
+
+  const fileExtension = fullFile.match(/\.([^.]+)$/)?.[1];
+  if (allLanguages.includes(fileExtension as Lang)) {
+    language = fileExtension;
+  } else {
+    language = (
+      await prompts([
+        {
+          name: "language",
+          type: "autocomplete",
+          message: `Enter the language to use when finding and replacing in ${file}: `,
+          choices: allLanguages.map((language) => {
+            return { title: language };
+          }),
+          initial: allLanguages[0],
+        },
+      ])
+    ).language;
+  }
+
+  // TODO: why is the reverse needed?
+  const findResults = findWithArgs(code, language, args).reverse();
+  if (findResults.length > 0) {
+    files.push({
+      fileName: file,
+      filePath: fullFile,
+      code,
+      language,
+      findResults,
+    });
+  }
 }
-let findResults = await findWithArgs(code, args);
-if (findResults.length === 0) {
+
+if (files.length === 0) {
   console.log(yellow("No Results Found"));
   process.exit(0);
 }
@@ -136,11 +188,17 @@ if (findResults.length === 0) {
  * REPLACE ALL
  */
 if (args.all) {
-  await replace(code, findResults);
+  for (const { code, findResults, filePath } of files) {
+    await replace(code, findResults, filePath);
+  }
+  const totalResults = files.reduce(
+    (prev, file) => prev + file.findResults.length,
+    0,
+  );
   console.log(
     green(
-      `Replaced ${findResults.length}/${findResults.length} Result${
-        findResults.length === 1 ? "" : "s"
+      `Replaced ${totalResults}/${totalResults} Result${
+        totalResults === 1 ? "" : "s"
       }`,
     ),
   );
@@ -156,21 +214,36 @@ let resultNumber = 0;
 
 // eslint-disable-next-line
 while (true) {
+  let searchResultIndex = 0;
+  const file = files.find((file) => {
+    searchResultIndex += file.findResults.length;
+    if (searchResultIndex > resultNumber) {
+      return true;
+    }
+  });
+
   const codePreview = getReplaceCode(
-    code,
-    args.language,
-    findResults[resultNumber],
+    file.code,
+    file.language,
+    file.findResults[searchResultIndex - resultNumber - 1],
   );
+
+  const numberFindResultsLeft = files.reduce(
+    (prev, file) => prev + file.findResults.length,
+    0,
+  );
+
   console.log(
-    bold(`${resultNumber + 1} of ${findResults.length}`) +
-      green(" • ") +
-      bold("Replace with: ") +
-      green(args.replace) +
-      "\n" +
-      codePreview +
-      "\n\n",
+    `${bold(`${resultNumber + 1} of ${numberFindResultsLeft}`)} ${green(
+      "•",
+    )} ${bold("Replace with:")} ${green(args.replace)}
+${blue(file.fileName)}
+    ${codePreview}
+    
+    `,
   );
   const keyPressed = await keypress();
+
   // Quit: ^C / Q
   if (keyPressed.length > 0 && (keyPressed[0] === 3 || keyPressed[0] === 113)) {
     console.log(red("Quit"));
@@ -183,14 +256,24 @@ while (true) {
     (keyPressed[0] === 114 || keyPressed[0] === 13)
   ) {
     // Update the file with the replaced result and update the results
-    const newFileContents = await replace(code, [findResults[resultNumber]]);
-    code = newFileContents;
-    findResults = await findWithArgs(code, args);
-    if (findResults.length === 0) {
+    const newFileContents = await replace(
+      file.code,
+      [file.findResults[searchResultIndex - resultNumber - 1]],
+      file.filePath,
+    );
+    file.code = newFileContents;
+    file.findResults = await findWithArgs(file.code, file.language, args);
+
+    const numberFindResultsLeft = files.reduce(
+      (prev, file) => prev + file.findResults.length,
+      0,
+    );
+
+    if (numberFindResultsLeft === 0) {
       console.log(green("All Results Replaced"));
       process.exit(1);
-    } else if (resultNumber > findResults.length - 1) {
-      resultNumber = findResults.length - 1;
+    } else if (resultNumber > numberFindResultsLeft - 1) {
+      resultNumber = numberFindResultsLeft - 1;
     }
   }
 
@@ -202,7 +285,7 @@ while (true) {
     (keyPressed[2] === 68 || keyPressed[2] === 65)
   ) {
     resultNumber =
-      resultNumber === 0 ? findResults.length - 1 : resultNumber - 1;
+      resultNumber === 0 ? numberFindResultsLeft - 1 : resultNumber - 1;
   }
 
   // Next: Right Arrow / Down Arrow
@@ -213,7 +296,7 @@ while (true) {
     (keyPressed[2] === 67 || keyPressed[2] === 66)
   ) {
     resultNumber =
-      resultNumber === findResults.length - 1 ? 0 : resultNumber + 1;
+      resultNumber === numberFindResultsLeft - 1 ? 0 : resultNumber + 1;
   }
 }
 
@@ -235,13 +318,14 @@ async function keypress(): Promise<number[]> {
 /*
  * Find all the results
  */
-async function findWithArgs(
+function findWithArgs(
   code: string,
+  language: Lang,
   args: FRISArgs,
-): Promise<FindResult[]> {
+): FindResult[] {
   const pattern = args.regex ? new RegExp(args.find) : args.find;
   return find(code, pattern, {
-    lang: args.language,
+    lang: language,
     scope: args.scope,
     ignore: args.ignore,
   });
@@ -250,7 +334,11 @@ async function findWithArgs(
 /*
  * Replace some results in the code and update the file
  */
-async function replace(code: string, occurrences: FindResult[]) {
+async function replace(
+  code: string,
+  occurrences: FindResult[],
+  filePath: string,
+) {
   const results = [...occurrences];
   const lines = code.split("\n");
   let output = "";
@@ -298,17 +386,10 @@ async function replace(code: string, occurrences: FindResult[]) {
 
   // Save the file
   try {
-    await writeFile(path.resolve(process.cwd(), args.file), output);
+    await writeFile(filePath, output);
   } catch (error) {
     console.error(
-      red("✖ ") +
-        "Unable to write to file: " +
-        link(
-          path.resolve(process.cwd(), args.file),
-          path.resolve(process.cwd(), args.file),
-        ) +
-        ", " +
-        error.message,
+      `${red("✖")} Unable to write to file: ${filePath}, ${error.message}`,
     );
   }
   return output;

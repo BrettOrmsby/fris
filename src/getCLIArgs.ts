@@ -1,20 +1,12 @@
 /*
  * Get all CL args and normalize values into a useable object
  */
-import * as fs from "node:fs";
-import * as path from "node:path";
 import minimist from "minimist";
 import prompts from "prompts";
-import { BUNDLED_LANGUAGES, Theme, type Lang } from "shiki";
-
-// Get all supported shiki languages
-const allLanguages = BUNDLED_LANGUAGES.map((language) =>
-  language.aliases ? [language.id, ...language.aliases] : language.id,
-).flat() as Lang[];
+import { Theme } from "shiki";
 
 export type FRISArgs = {
   file: string;
-  language: Lang;
   find: string;
   replace: string;
   scope: string;
@@ -39,7 +31,6 @@ export async function getCLIArgs(): Promise<FRISArgs> {
 
   // Run the picker
   if (argv.picker) {
-    let filepath = "";
     const responses = await prompts(
       [
         {
@@ -47,25 +38,6 @@ export async function getCLIArgs(): Promise<FRISArgs> {
           type: "text",
           message: "File path:",
           initial: argv.file,
-          validate: (value) =>
-            fs.existsSync(path.resolve(process.cwd(), value))
-              ? true
-              : `File ${path.resolve(process.cwd(), value)} does not exist.`,
-          onState: ({ value }) => {
-            filepath = path.resolve(process.cwd(), value);
-          },
-        },
-        {
-          name: "language",
-          type: () =>
-            tryGetLanguage(argv.language, filepath.split(".")[1])
-              ? null
-              : "autocomplete",
-          message: "Language: ",
-          choices: allLanguages.map((lang) => {
-            return { title: lang };
-          }),
-          initial: allLanguages[0],
         },
         {
           name: "find",
@@ -118,12 +90,6 @@ export async function getCLIArgs(): Promise<FRISArgs> {
     console.log("");
   }
 
-  // Try to find the language to use for tokenizing
-  argv.language =
-    tryGetLanguage(
-      argv.language,
-      argv.file.split(".")[argv.file.split(".").length - 1],
-    ) || argv.language;
   checkArgErrors(argv);
   return argv;
 }
@@ -133,7 +99,6 @@ export async function getCLIArgs(): Promise<FRISArgs> {
  */
 function normalizeArgs(): FRISArgs {
   const normalizedArgs: FRISArgs = {
-    language: "" as Lang,
     file: "",
     find: "",
     replace: "",
@@ -161,9 +126,9 @@ function normalizeArgs(): FRISArgs {
           !("version" in argv)
         ) {
           if (value.length < 1) {
-            throw new Error(
-              "Expected file, find and replace argument: ~ fris <file> <find> <replace>",
-            );
+            // open the help menu
+            normalizedArgs.help = true;
+            break;
           } else if (value.length < 2) {
             throw new Error(
               "Expected find and replace arguments: ~ fris <file> <find> <replace>",
@@ -184,13 +149,11 @@ function normalizeArgs(): FRISArgs {
         break;
       case "s":
       case "scope":
-        // Convert to string
-        normalizedArgs.scope = "" + value;
+        normalizedArgs.scope = value.toString();
         break;
       case "i":
       case "ignore":
-        // Convert to string
-        normalizedArgs.ignore = "" + value;
+        normalizedArgs.ignore = value.toString();
         break;
       case "r":
       case "regex":
@@ -200,17 +163,13 @@ function normalizeArgs(): FRISArgs {
       case "all":
         normalizedArgs.all = true;
         break;
-      case "l":
-      case "language":
-        normalizedArgs.language = value;
-        break;
       case "h":
       case "help":
         normalizedArgs.help = true;
         break;
       case "t":
       case "theme":
-        normalizedArgs.theme = ("" + value) as Theme;
+        normalizedArgs.theme = value.toString() as Theme;
         break;
       case "version":
         normalizedArgs.version = true;
@@ -219,54 +178,13 @@ function normalizeArgs(): FRISArgs {
         break;
     }
   }
-  // Try to predict the language to use for tokenizing
-  if (normalizedArgs.file && normalizedArgs.language === ("" as Lang)) {
-    if (allLanguages.includes(normalizedArgs.file.split(".")[1] as any)) {
-      normalizedArgs.language = normalizedArgs.file.split(".")[1] as Lang;
-    }
-  }
   return normalizedArgs;
-}
-
-/*
- * Try to get the language to use for tokenizing
- */
-function tryGetLanguage(langArg: string, fileExtension: string): Lang | void {
-  if (allLanguages.includes(langArg as Lang)) {
-    return langArg as Lang;
-  }
-  if (allLanguages.includes(fileExtension as Lang)) {
-    return fileExtension as Lang;
-  }
-  return;
 }
 
 /*
  * Check for any errors in the arguments
  */
 function checkArgErrors(argv: FRISArgs) {
-  if (!fs.existsSync(path.resolve(process.cwd(), argv.file))) {
-    throw new Error(
-      "No file found at path: " + path.resolve(process.cwd(), argv.file),
-    );
-  }
-
-  if (
-    !tryGetLanguage(
-      argv.language,
-      argv.file.split(".")[argv.file.split(".").length - 1],
-    )
-  ) {
-    if (argv.language !== ("" as Lang)) {
-      throw new Error("Expected a valid language identifier: " + argv.language);
-    } else {
-      throw new Error(
-        "Unknown language for file extension: " +
-          argv.file.split(".")[argv.file.split(".").length - 1],
-      );
-    }
-  }
-
   if (argv.regex) {
     try {
       new RegExp(argv.find);
