@@ -32,14 +32,14 @@ try {
 if (args.help) {
   console.log(`FRIS, Find and Replace In Scopes
 
-  Usage:
+  ${bold("Usage")}
     fris <file_path> <find_pattern> <replacer> [options]
     fris -t THEME | --theme=THEME
     fris -p | --picker
     fris -h | --help
     fris --version
   
-  Options:
+  ${bold("Options")}
     -h --help                        Show this screen.
     --version                        Show version.
     -t THEME --theme=THEME           Set a new code highlighting theme.
@@ -49,7 +49,7 @@ if (args.help) {
     -s SCOPE --scope=SCOPE           Scope to find all occurrences within.
     -i SCOPE --ignore=SCOPE          Scope to ignore all found occurrences within.
     
-  User Actions:
+  ${bold("User Actions")}
     Picker:  
       Use enter to submit the answer.
       Use arrow keys or tab to navigate between no / yes prompts
