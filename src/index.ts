@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// TODO: update to shiki v1
 /*
  * Script for running the fris program
  */
@@ -35,6 +36,7 @@ if (args.help) {
   ${bold("Usage")}
     fris <file_path> <find_pattern> <replacer> [options]
     fris -t THEME | --theme=THEME
+    fris -l NUMBER | --lines=NUMBER
     fris -p | --picker
     fris -h | --help
     fris --version
@@ -43,6 +45,7 @@ if (args.help) {
     -h --help                        Show this screen.
     --version                        Show version.
     -t THEME --theme=THEME           Set a new code highlighting theme.
+    -l NUMBER --lines=NUMBER         Set the number of lines to display when finding and replacing.
     -p --picker                      Show the picker and autofill with other present options.
     -r --regex                       Use regex when finding and replacing.
     -a --all                         Replace all occurrences without prompting.
@@ -75,13 +78,14 @@ if (args.version) {
  * SET THEME
  */
 if (args.theme) {
+  let file;
+  try {
+    file = await readFile(__dirname + "/storage.json", "utf8");
+  } catch (error) {
+    console.error(red("✖ ") + "Unable to read storage");
+    process.exit(1);
+  }
   if (!BUNDLED_THEMES.includes(args.theme)) {
-    let file;
-    try {
-      file = await readFile(__dirname + "/storage.json", "utf8");
-    } catch (error) {
-      // Ignore eslint empty block
-    }
     const theme: Theme = file ? JSON.parse(file).theme : "dracula";
     args.theme = (
       await prompts([
@@ -100,13 +104,46 @@ if (args.theme) {
   try {
     await writeFile(
       __dirname + "/storage.json",
-      JSON.stringify({ theme: args.theme }),
+      JSON.stringify({ ...JSON.parse(file), theme: args.theme }),
     );
     console.log(green("Theme stored"));
+    process.exit(1);
   } catch (error) {
     console.error(red("✖ ") + "Unable to store theme");
+    process.exit(0);
   }
-  process.exit(1);
+}
+
+/*
+ * SET LINES
+ */
+if (args.lines !== null) {
+  let file;
+  try {
+    file = await readFile(__dirname + "/storage.json", "utf8");
+  } catch (error) {
+    console.error(red("✖ ") + "Unable to read storage");
+    process.exit(1);
+  }
+  if (isNaN(args.lines)) {
+    console.error(red("✖ ") + "Invalid value for the lines to display");
+    process.exit(1);
+  }
+  if (args.lines < 1) {
+    console.error(red("✖ ") + "Unable to display fewer than 1 lines");
+    process.exit(1);
+  }
+  try {
+    await writeFile(
+      __dirname + "/storage.json",
+      JSON.stringify({ ...JSON.parse(file), lines: args.lines }),
+    );
+    console.log(green("Number of lines stored"));
+    process.exit(1);
+  } catch (error) {
+    console.error(red("✖ ") + "Unable to store the number of lines");
+    process.exit(0);
+  }
 }
 
 /*
@@ -247,7 +284,7 @@ ${blue(file.fileName)}
   // Quit: ^C / Q
   if (keyPressed.length > 0 && (keyPressed[0] === 3 || keyPressed[0] === 113)) {
     console.log(red("Quit"));
-    process.exit(1);
+    process.exit(0);
   }
 
   // Replace: R / Enter
@@ -271,7 +308,7 @@ ${blue(file.fileName)}
 
     if (numberFindResultsLeft === 0) {
       console.log(green("All Results Replaced"));
-      process.exit(1);
+      process.exit(0);
     } else if (resultNumber > numberFindResultsLeft - 1) {
       resultNumber = numberFindResultsLeft - 1;
     }

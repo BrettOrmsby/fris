@@ -17,6 +17,7 @@ export type FRISArgs = {
   help: boolean;
   version: boolean;
   theme: Theme;
+  lines: number;
 };
 
 /*
@@ -24,8 +25,14 @@ export type FRISArgs = {
  */
 export async function getCLIArgs(): Promise<FRISArgs> {
   let argv = normalizeArgs();
-  // When running help or version, the other args are not important
-  if (argv.help || argv.version || argv.theme) {
+  // When running help, version, theme, or lines, the other args are not important
+  if (
+    argv.help ||
+    argv.version ||
+    argv.theme ||
+    argv.lines ||
+    argv.lines === 0
+  ) {
     return argv;
   }
 
@@ -108,6 +115,7 @@ function normalizeArgs(): FRISArgs {
     regex: false,
     all: false,
     theme: null,
+    lines: null,
     help: false,
     version: false,
   };
@@ -123,6 +131,8 @@ function normalizeArgs(): FRISArgs {
           !("help" in argv) &&
           !("t" in argv) &&
           !("theme" in argv) &&
+          !("l" in argv) &&
+          !("lines" in argv) &&
           !("version" in argv)
         ) {
           if (value.length < 1) {
@@ -170,6 +180,10 @@ function normalizeArgs(): FRISArgs {
       case "t":
       case "theme":
         normalizedArgs.theme = value.toString() as Theme;
+        break;
+      case "l":
+      case "lines":
+        normalizedArgs.lines = parseInt(value);
         break;
       case "version":
         normalizedArgs.version = true;

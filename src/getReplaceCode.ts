@@ -3,12 +3,23 @@
  */
 import { FindResult } from "./find.js";
 import tokenize, { getThemeColours } from "./tokenize.js";
+import { readFile } from "fs/promises";
+import * as path from "node:path";
+import { fileURLToPath } from "url";
 import { Lang } from "shiki";
-import { ansi256, ansi256Bg, trueColor, trueColorBg } from "kolorist";
+import { ansi256, ansi256Bg, red, trueColor, trueColorBg } from "kolorist";
 import supportsColor from "supports-color";
 
-// Number of lines to show around the result, recommend an odd number
-const NUMBER_LINES_SHOWN = 7;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+let file: string;
+try {
+  file = await readFile(__dirname + "/storage.json", "utf8");
+} catch (error) {
+  console.error(
+    red("✖ ") + "Unable to load the number of lines, defaulting to 7",
+  );
+}
+const numberOfLines = file ? JSON.parse(file).lines : 7;
 
 export default function getReplaceCode(
   code: string,
@@ -19,12 +30,9 @@ export default function getReplaceCode(
   const colors = getThemeColours();
 
   // Get the number of lines surrounding the result
-  // Start by trying to go half above and half below
-  const numberSurroundingLines = Math.abs(
-    Math.ceil((NUMBER_LINES_SHOWN - 1) / 2),
-  );
-  let startLine = result.start.line - numberSurroundingLines;
-  let endLine = result.end.line + numberSurroundingLines;
+  let startLine =
+    result.start.line - Math.abs(Math.ceil((numberOfLines - 1) / 2));
+  let endLine = result.end.line + Math.abs(Math.floor((numberOfLines - 1) / 2));
 
   // If there were not enough lines above, add the remainder lines below
   if (startLine < 0) {

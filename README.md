@@ -30,6 +30,7 @@ FRIS, Find and Replace In Scopes
   Usage:
     fris <file_path_or_glob> <find_pattern> <replacer> [options]
     fris -t THEME | --theme=THEME
+    fris -l NUMBER | --lines=NUMBER
     fris -p | --picker
     fris -h | --help
     fris --version
@@ -38,6 +39,7 @@ FRIS, Find and Replace In Scopes
     -h --help                        Show this screen.
     --version                        Show version.
     -t THEME --theme=THEME           Set a new code highlighting theme.
+    -l NUMBER --lines=NUMBER         Set the number of lines to display when finding and replacing.
     -p --picker                      Show the picker and autofill with other present options.
     -r --regex                       Use regex when finding and replacing.
     -a --all                         Replace all occurrences without prompting.
@@ -135,6 +137,16 @@ fris -t
 ```
 
 To change the colour theme of the code highlighting, you can use one of the commands above and provide a valid theme name, or use autocomplete in the picker to pick a theme. The colours that will appear in the terminal may not be the exact same as those that are part of the theme because the terminal may only support [ansi 256](https://www.ditig.com/256-colors-cheat-sheet).
+
+### Changing The Number of Displayed Lines
+
+```bash
+fris -l NUMBER
+# or
+fris --lines=NUMBER
+```
+
+To change the number of lines that are displayed when code highlighting, you can use one of the commands above. The number must not be less than 1.
 
 ## Help
 
