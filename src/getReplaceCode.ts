@@ -4,7 +4,8 @@
 import { FindResult } from "./find.js";
 import tokenize, { getThemeColours } from "./tokenize.js";
 import { Lang } from "shiki";
-import { ansi256, ansi256Bg } from "kolorist";
+import { ansi256, ansi256Bg, trueColor, trueColorBg } from "kolorist";
+import supportsColor from "supports-color";
 
 // Number of lines to show around the result, recommend an odd number
 const NUMBER_LINES_SHOWN = 7;
@@ -42,12 +43,18 @@ export default function getReplaceCode(
   }
 
   // Get theme-specific colours
-  const bg = ansi256Bg(hexToANSI256(colors["editor.background"]));
-  const matchBackgroundColor = ansi256Bg(
-    hexToANSI256(colors["editor.findMatchHighlightBackground"] || "#FFFF00"),
+  const bg = getColourFunction(colors["editor.background"], "bg");
+  const matchBackgroundColor = getColourFunction(
+    colors["editor.findMatchHighlightBackground"] ||
+      colors["editor.selectionHighlightBackground"] ||
+      "#FFFF00",
+    "bg",
+    colors["editor.background"],
   );
-  const lineNumberColor = ansi256(
-    hexToANSI256(colors["editorLineNumber.foreground"]),
+
+  const lineNumberColor = getColourFunction(
+    colors["editorLineNumber.foreground"],
+    "fg",
   );
 
   // All line numbers need to be padded to have an equal width
@@ -69,7 +76,7 @@ export default function getReplaceCode(
     if (i === result.start.line) {
       let charPos = 0;
       for (const token of line) {
-        const color = ansi256(hexToANSI256(token.color));
+        const color = getColourFunction(token.color, "fg");
 
         // Check if the match is found in this token
         if (
@@ -97,7 +104,7 @@ export default function getReplaceCode(
     } else {
       // Add all the tokens on the line to the output
       for (const token of line) {
-        const color = ansi256(hexToANSI256(token.color));
+        const color = getColourFunction(token.color, "fg");
         output += color(token.content);
       }
     }
@@ -113,21 +120,79 @@ export default function getReplaceCode(
 }
 
 /*
+ * Get the colour code function from kolorist for a colour
+ */
+function getColourFunction(
+  colour: string,
+  position: "fg" | "bg" = "fg",
+  background?: string,
+): (str: string | number) => string {
+  // eslint-disable-next-line
+  let [r, g, b, a] = hexToRgb(colour);
+  if (a !== 1 && background) {
+    const [rBg, gBg, bBG] = hexToRgb(background);
+    // blend the background with the colour
+    r = Math.round((1 - a) * rBg + a * r);
+    g = Math.round((1 - a) * gBg + a * g);
+    b = Math.round((1 - a) * bBG + a * b);
+    colour = RGBToHex(r, g, b);
+  }
+  if (supportsColor.stdout && supportsColor.stdout.has16m) {
+    return position === "fg" ? trueColor(r, g, b) : trueColorBg(r, g, b);
+  }
+
+  return position === "fg"
+    ? ansi256(hexToANSI256(colour))
+    : ansi256Bg(hexToANSI256(colour));
+}
+
+/*
+ * Convert a hex to rgb
+ */
+function hexToRgb(hex: string): [number, number, number, number] {
+  hex = hex.replace("#", "");
+
+  let r: number, g: number, b: number, a: number;
+  if (hex.length === 3 || hex.length === 4) {
+    // Convert shorthand hex to full hex
+    hex = hex.replace(/(.)/g, "$1$1");
+  }
+
+  if (hex.length === 6) {
+    r = parseInt(hex.slice(0, 2), 16);
+    g = parseInt(hex.slice(2, 4), 16);
+    b = parseInt(hex.slice(4, 6), 16);
+    a = 1;
+  } else if (hex.length === 8) {
+    r = parseInt(hex.slice(0, 2), 16);
+    g = parseInt(hex.slice(2, 4), 16);
+    b = parseInt(hex.slice(4, 6), 16);
+    a = parseInt(hex.slice(6, 8), 16) / 255;
+  }
+
+  return [r, g, b, a];
+}
+
+/*
+ * Convert a rgb to hex
+ */
+function RGBToHex(r, g, b) {
+  r = r.toString(16);
+  g = g.toString(16);
+  b = b.toString(16);
+
+  if (r.length == 1) r = "0" + r;
+  if (g.length == 1) g = "0" + g;
+  if (b.length == 1) b = "0" + b;
+
+  return "#" + r + g + b;
+}
+
+/*
  * Convert a hex to a ANSI256 number
  * See https://github.com/Qix-/color-convert/blob/master/conversions.js#L551
  */
 function hexToANSI256(hex): number {
-  // Convert a hex to rgb, See https://stackoverflow.com/a/39077686
-  const hexToRgb = (hex) =>
-    hex
-      .replace(
-        /^#?([a-f\d])([a-f\d])([a-f\d])$/i,
-        (m, r, g, b) => "#" + r + r + g + g + b + b,
-      )
-      .substring(1)
-      .match(/.{2}/g)
-      .map((x) => parseInt(x, 16));
-
   const [r, g, b] = hexToRgb(hex);
 
   if (r >> 4 === g >> 4 && g >> 4 === b >> 4) {

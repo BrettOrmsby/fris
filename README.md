@@ -6,7 +6,7 @@ _A command line tool to find and replace text within syntax scopes._
 
 ## About
 
-Fris, Find and Replace In Scopes, is a command line application to find and replace text in syntax scopes. For example, you can use fris to replace all the occurrences of `code` with `codeSnippet` excluding those that are found within strings.
+Fris, Find and Replace In Scopes, is a command line application to find and replace text in syntax scopes. For example, you can use fris to replace all the occurrences of `code` with `codeSnippet` excluding those found within strings.
 
 ## Installation
 
@@ -60,7 +60,7 @@ FRIS, Find and Replace In Scopes
 fris <file_path_or_glob> <find_pattern> <replacer> [options]
 ```
 
-Fris can be run with all the configuration provided by the command line.
+Fris can be run with all the configurations provided by the command line.
 
 #### Example
 
@@ -70,7 +70,7 @@ fris path/to/file.js "code" "codeSnippet" -i "string.**"
 
 #### \<file_path_or_glob\>
 
-The location of the file to complete the finding and replacing on. You can also enter a glob to replace occurrences in multiple files:
+The location of the file to complete the finding and replacing. You can also enter a glob to replace occurrences in multiple files:
 
 ```bash
 fris "src/**/*.ts" "code" "codeSnippet" -i "string.**"
@@ -78,7 +78,7 @@ fris "src/**/*.ts" "code" "codeSnippet" -i "string.**"
 
 #### \<find_pattern\>
 
-The pattern to use to find the results with. Tokens can span only one line, so patterns with multiple lines will not find any results.
+The pattern to use to find the results. Tokens can span only one line, so patterns with multiple lines will not find any results.
 
 #### \<replacer\>
 
@@ -94,15 +94,15 @@ If present, replace all results instead of picking individual results to replace
 
 #### -s SCOPE | --scope=SCOPE
 
-Only results that are in the scope provided will be found. The scope can be a glob-like pattern. For example, `*` matches one section and `**` match any section. If the pattern is `string.**`, all the following scopes will match it: `string.quoted.single.ts`, `string.quoted.double.ts` and `string.template.ts`.
+Only results that are in the scope provided will be found. The scope can be a glob-like pattern. For example, `*` matches one section, and `**` matches any section. If the pattern is `string.**`, all the following scopes will match it: `string.quoted.single.ts`, `string.quoted.double.ts`, and `string.template.ts`.
 
 #### -i SCOPE | --ignore=SCOPE
 
-Only results that are in **not** the scope provided will be found. The scope can be a glob-like pattern. For example, `*` matches one section and `**` match any section. If the pattern is `string.**`, all the following scopes will match it: `string.quoted.single.ts`, `string.quoted.double.ts` and `string.template.ts`.
+Only results that are **not** in the scope provided will be found. The scope can be a glob-like pattern. For example, `*` matches one section, and `**` matches any section. If the pattern is `string.**`, all the following scopes will match it: `string.quoted.single.ts`, `string.quoted.double.ts`, and `string.template.ts`.
 
 #### -p | --picker
 
-When present, the program will open a visual picker for all of the arguments above. If a argument was present in the command, the default value of that question in the the picker will be the argument.
+When present, the program will open a visual picker for all of the arguments above. If an argument was present in the command, the default value of that question in the the picker will be the argument.
 
 ### Picker
 
@@ -116,7 +116,7 @@ fris -p
 fris --picker
 ```
 
-To submit the answer to a question, press <kbd>Enter</kbd>. Use the arrow keys or <kbd>Tab</kbd> to navigate between `no / yes` questions. You may be prompted to enter a language if the file extension is not a valid alias. If you do, you can find a language by typing the start and autocomplete will attempt to find the language. You can still navigate the languages using the arrow keys and use <kbd>Enter</kbd> to submit the answer.
+To submit the answer to a question, press <kbd>Enter</kbd>. Use the arrow keys or <kbd>Tab</kbd> to navigate between `no / yes` questions.
 
 ### Replacing Individual Results
 
@@ -134,11 +134,11 @@ fris --theme=THEME
 fris -t
 ```
 
-To change the colour theme of the code highlighting you can use one of the commands above and provide a valid theme name or use autocomplete in the picker to pick a theme. The colours that will appear in the terminal are not the exact same as those that are part of the theme because they must be converted to [ansi 256](https://www.ditig.com/256-colors-cheat-sheet).
+To change the colour theme of the code highlighting, you can use one of the commands above and provide a valid theme name, or use autocomplete in the picker to pick a theme. The colours that will appear in the terminal may not be the exact same as those that are part of the theme because the terminal may only support [ansi 256](https://www.ditig.com/256-colors-cheat-sheet).
 
 ## Help
 
-If you are using VSCode as a editor you can see what scopes a token belongs to using the [scope inspector](https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide#scope-inspector).
+If you are using VSCode as an editor, you can see what scopes a token belongs to using the [scope inspector](https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide#scope-inspector).
 
 1. Press <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd> or <kbd>F1</kbd> to show the command palette.
 2. Type in `Developer: Inspect Editor Tokens and Scopes`
