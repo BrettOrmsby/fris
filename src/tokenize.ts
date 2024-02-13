@@ -4,9 +4,15 @@
 import { readFile } from "fs/promises";
 import * as path from "path";
 import { fileURLToPath } from "url";
-import { getHighlighter, type Lang, type IThemedToken, Theme } from "shiki";
+import {
+  getHighlighter,
+  type BundledLanguage,
+  type ThemedToken,
+  BundledTheme,
+} from "shiki";
 import { red } from "kolorist";
 
+// Try to load the code highlight theme
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let file: string;
 try {
@@ -14,20 +20,29 @@ try {
 } catch (error) {
   console.error(red("✖ ") + "Unable to load theme, defaulting to dracula");
 }
-const theme: Theme = file ? JSON.parse(file).theme : "dracula";
+const theme: BundledTheme = file ? JSON.parse(file).theme : "dracula";
 
-const highlighter = await getHighlighter({});
-await highlighter.loadTheme(theme);
+const highlighter = await getHighlighter({ themes: [theme], langs: [] });
 
 /*
  * Tokenize the provided code
  */
-export default function tokenize(code: string, lang: Lang): IThemedToken[][] {
-  return highlighter.codeToThemedTokens(code, lang, theme);
+export default async function tokenize(
+  code: string,
+  lang: BundledLanguage,
+): Promise<ThemedToken[][]> {
+  if (!highlighter.getLoadedLanguages().includes(lang)) {
+    await highlighter.loadLanguage(lang);
+  }
+  return highlighter.codeToTokensBase(code, {
+    includeExplanation: true,
+    lang,
+    theme,
+  });
 }
 
 /*
- * Provide the colours for the code highlighter
+ * Provide the colours for the code highlight theme
  */
 export function getThemeColours(): Record<string, string> {
   return highlighter.getTheme(theme).colors;

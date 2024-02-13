@@ -4,21 +4,10 @@
 import globToRegex from "./globToRegex.js";
 import tokenize from "./tokenize.js";
 import { escapeStringToRegex } from "./utils.js";
-import type { Lang } from "shiki";
-
-// Interfaces copied from shiki as they are not exported
-interface IThemedTokenScopeExplanation {
-  scopeName: string;
-  // eslint-disable-next-line
-  themeMatches: any[];
-}
-interface IThemedTokenExplanation {
-  content: string;
-  scopes: IThemedTokenScopeExplanation[];
-}
+import type { BundledLanguage, ThemedTokenExplanation } from "shiki";
 
 export type FindOptions = {
-  lang: Lang;
+  lang: BundledLanguage;
   scope?: string;
   ignore?: string;
 };
@@ -32,17 +21,19 @@ export type FindResult = {
   end: Pos;
 };
 
-export default function find(
+export default async function find(
   code: string,
   pattern: string | RegExp,
   options: FindOptions,
-): FindResult[] {
+): Promise<FindResult[]> {
   const results: FindResult[] = [];
-  const tokens = tokenize(code, options.lang);
+  const tokens = await tokenize(code, options.lang);
+
   const findRegex =
     typeof pattern === "string"
       ? escapeStringToRegex(pattern, "g")
       : new RegExp(pattern, pattern.flags + "g");
+
   const scope = options.scope ? globToRegex(options.scope) : /^.*$/;
   // /^\b\B$/ matches nothing
   const ignore = options.ignore ? globToRegex(options.ignore) : /^\b\B$/;
@@ -89,7 +80,7 @@ export default function find(
  * Function to check if a token explanation has a scope that matches a pattern
  */
 function explanationMatchesScopePattern(
-  explanations: IThemedTokenExplanation[],
+  explanations: ThemedTokenExplanation[],
   pattern: RegExp,
 ): boolean {
   if (!explanations) {

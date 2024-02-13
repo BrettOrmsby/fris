@@ -3,7 +3,7 @@
  */
 import minimist from "minimist";
 import prompts from "prompts";
-import { Theme } from "shiki";
+import type { BundledTheme } from "shiki";
 
 export type FRISArgs = {
   file: string;
@@ -16,7 +16,7 @@ export type FRISArgs = {
   all: boolean;
   help: boolean;
   version: boolean;
-  theme: Theme;
+  theme: BundledTheme;
   lines: number;
 };
 
@@ -179,7 +179,7 @@ function normalizeArgs(): FRISArgs {
         break;
       case "t":
       case "theme":
-        normalizedArgs.theme = value.toString() as Theme;
+        normalizedArgs.theme = value.toString() as BundledTheme;
         break;
       case "l":
       case "lines":

@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// TODO: update to shiki v1
 /*
  * Script for running the fris program
  */
@@ -12,9 +11,14 @@ import { readFile, writeFile } from "fs/promises";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import { blue, bold, green, link, red, yellow } from "kolorist";
-import { Theme, BUNDLED_THEMES, Lang, BUNDLED_LANGUAGES } from "shiki";
 import prompts from "prompts";
 import { sync } from "glob";
+import {
+  BundledLanguage,
+  BundledTheme,
+  bundledLanguages,
+  bundledThemes,
+} from "shiki";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -85,15 +89,16 @@ if (args.theme) {
     console.error(red("✖ ") + "Unable to read storage");
     process.exit(1);
   }
-  if (!BUNDLED_THEMES.includes(args.theme)) {
-    const theme: Theme = file ? JSON.parse(file).theme : "dracula";
+  const themes = Object.keys(bundledThemes) as BundledTheme[];
+  if (!themes.includes(args.theme)) {
+    const theme: BundledTheme = file ? JSON.parse(file).theme : "dracula";
     args.theme = (
       await prompts([
         {
           name: "newTheme",
           type: "autocomplete",
           message: "Theme: ",
-          choices: BUNDLED_THEMES.map((theme) => {
+          choices: themes.map((theme) => {
             return { title: theme };
           }),
           initial: theme,
@@ -151,16 +156,14 @@ if (args.lines !== null) {
  */
 
 // Get all supported shiki languages
-const allLanguages = BUNDLED_LANGUAGES.map((language) =>
-  language.aliases ? [language.id, ...language.aliases] : language.id,
-).flat() as Lang[];
+const allLanguages = Object.keys(bundledLanguages) as BundledLanguage[];
 
 // Get all matching files with results
 type CodeSearchFile = {
   fileName: string;
   filePath: string;
   code: string;
-  language: Lang;
+  language: BundledLanguage;
   findResults: FindResult[];
 };
 const files: CodeSearchFile[] = [];
@@ -185,7 +188,7 @@ for (const file of sync(args.file)) {
   let language;
 
   const fileExtension = fullFile.match(/\.([^.]+)$/)?.[1];
-  if (allLanguages.includes(fileExtension as Lang)) {
+  if (allLanguages.includes(fileExtension as BundledLanguage)) {
     language = fileExtension;
   } else {
     language = (
@@ -204,7 +207,7 @@ for (const file of sync(args.file)) {
   }
 
   // TODO: why is the reverse needed?
-  const findResults = findWithArgs(code, language, args).reverse();
+  const findResults = (await findWithArgs(code, language, args)).reverse();
   if (findResults.length > 0) {
     files.push({
       fileName: file,
@@ -259,7 +262,7 @@ while (true) {
     }
   });
 
-  const codePreview = getReplaceCode(
+  const codePreview = await getReplaceCode(
     file.code,
     file.language,
     file.findResults[searchResultIndex - resultNumber - 1],
@@ -355,13 +358,13 @@ async function keypress(): Promise<number[]> {
 /*
  * Find all the results
  */
-function findWithArgs(
+async function findWithArgs(
   code: string,
-  language: Lang,
+  language: BundledLanguage,
   args: FRISArgs,
-): FindResult[] {
+): Promise<FindResult[]> {
   const pattern = args.regex ? new RegExp(args.find) : args.find;
-  return find(code, pattern, {
+  return await find(code, pattern, {
     lang: language,
     scope: args.scope,
     ignore: args.ignore,

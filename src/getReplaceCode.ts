@@ -6,10 +6,11 @@ import tokenize, { getThemeColours } from "./tokenize.js";
 import { readFile } from "fs/promises";
 import * as path from "node:path";
 import { fileURLToPath } from "url";
-import { Lang } from "shiki";
+import type { BundledLanguage } from "shiki";
 import { ansi256, ansi256Bg, red, trueColor, trueColorBg } from "kolorist";
 import supportsColor from "supports-color";
 
+// Load the number of lines to display
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let file: string;
 try {
@@ -21,12 +22,15 @@ try {
 }
 const numberOfLines = file ? JSON.parse(file).lines : 7;
 
-export default function getReplaceCode(
+/*
+ * Create the highlighted code section
+ */
+export default async function getReplaceCode(
   code: string,
-  lang: Lang,
+  lang: BundledLanguage,
   result: FindResult,
-): string {
-  const tokens = tokenize(code, lang);
+): Promise<string> {
+  const tokens = await tokenize(code, lang);
   const colors = getThemeColours();
 
   // Get the number of lines surrounding the result
