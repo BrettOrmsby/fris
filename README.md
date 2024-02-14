@@ -138,6 +138,8 @@ fris -t
 
 To change the colour theme of the code highlighting, you can use one of the commands above and provide a valid theme name, or use autocomplete in the picker to pick a theme. The colours that will appear in the terminal may not be the exact same as those that are part of the theme because the terminal may only support [ansi 256](https://www.ditig.com/256-colors-cheat-sheet).
 
+You can view all supported shiki themes here: https://shiki.style/themes
+
 ### Changing The Number of Displayed Lines
 
 ```bash
