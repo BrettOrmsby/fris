@@ -70,7 +70,7 @@ export default async function getReplaceCode(
   );
 
   // All line numbers need to be padded to have an equal width
-  const lineNumberPadding = endLine.toString().length;
+  const lineNumberPadding = (endLine + 1).toString().length;
 
   // For some reason the editor has to start with a newline so the first line has a background colour go the full width of the terminal
   let output = "\n";
