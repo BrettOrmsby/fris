@@ -302,7 +302,9 @@ ${blue(file.fileName)}
       file.filePath,
     );
     file.code = newFileContents;
-    file.findResults = await findWithArgs(file.code, file.language, args);
+    file.findResults = (
+      await findWithArgs(file.code, file.language, args)
+    ).reverse();
 
     const numberFindResultsLeft = files.reduce(
       (prev, file) => prev + file.findResults.length,
