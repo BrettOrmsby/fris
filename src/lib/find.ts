@@ -1,9 +1,9 @@
 /*
  * Find all matching indices of a pattern on code
  */
-import globToRegex from "./globToRegex.js";
+import globToRegex from "../utils/globToRegex.js";
 import tokenize from "./tokenize.js";
-import { escapeStringToRegex } from "./utils.js";
+import escapeStringToRegex from "../utils/escapeStringToRegex.js";
 import type { BundledLanguage, ThemedTokenExplanation } from "shiki";
 
 export type FindOptions = {

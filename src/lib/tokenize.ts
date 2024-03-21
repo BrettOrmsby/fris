@@ -16,7 +16,7 @@ import { red } from "kolorist";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let file: string;
 try {
-  file = await readFile(__dirname + "/storage.json", "utf8");
+  file = await readFile(__dirname + "/../storage.json", "utf8");
 } catch (error) {
   console.error(red("✖ ") + "Unable to load theme, defaulting to dracula");
 }

@@ -14,8 +14,9 @@ import supportsColor from "supports-color";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let file: string;
 try {
-  file = await readFile(__dirname + "/storage.json", "utf8");
+  file = await readFile(__dirname + "/../storage.json", "utf8");
 } catch (error) {
+  console.log(error, __dirname);
   console.error(
     red("✖ ") + "Unable to load the number of lines, defaulting to 7",
   );

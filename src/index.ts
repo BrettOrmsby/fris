@@ -3,10 +3,10 @@
  * Script for running the fris program
  */
 
-import { FRISArgs, getCLIArgs } from "./getCLIArgs.js";
-import find, { type FindResult } from "./find.js";
-import getReplaceCode from "./getReplaceCode.js";
-import { escapeStringToRegex } from "./utils.js";
+import { FRISArgs, getCLIArgs } from "./lib/getCLIArgs.js";
+import find, { type FindResult } from "./lib/find.js";
+import getReplaceCode from "./lib/getReplaceCode.js";
+import escapeStringToRegex from "./utils/escapeStringToRegex.js";
 import { readFile, writeFile } from "fs/promises";
 import * as path from "path";
 import { fileURLToPath } from "url";
