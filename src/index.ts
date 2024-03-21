@@ -19,6 +19,7 @@ import {
   bundledLanguages,
   bundledThemes,
 } from "shiki";
+import { createLogUpdate } from "log-update";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -251,9 +252,14 @@ if (args.all) {
 
 // Present user with menu showing the code and allowing to switch between the results
 let resultNumber = 0;
+let nextWarning = "";
+const logReplace = createLogUpdate(process.stdout, {
+  showCursor: true,
+});
 
 // eslint-disable-next-line
 while (true) {
+  // Get the file where the search result is
   let searchResultIndex = 0;
   const file = files.find((file) => {
     searchResultIndex += file.findResults.length;
@@ -262,10 +268,11 @@ while (true) {
     }
   });
 
+  const findResult = file.findResults[searchResultIndex - resultNumber - 1];
   const codePreview = await getReplaceCode(
     file.code,
     file.language,
-    file.findResults[searchResultIndex - resultNumber - 1],
+    findResult,
   );
 
   const numberFindResultsLeft = files.reduce(
@@ -273,15 +280,18 @@ while (true) {
     0,
   );
 
-  console.log(
-    `${bold(`${resultNumber + 1} of ${numberFindResultsLeft}`)} ${green(
-      "•",
-    )} ${bold("Replace with:")} ${green(args.replace)}
+  logReplace(
+    `${bold(yellow(nextWarning))}
+${bold(`${resultNumber + 1} of ${numberFindResultsLeft}`)} ${green("•")} ${bold(
+      "Replace with:",
+    )} ${green(args.replace)}
 ${blue(file.fileName)}
     ${codePreview}
-    
-    `,
+`,
   );
+
+  nextWarning = "";
+
   const keyPressed = await keypress();
 
   // Quit: ^C / Q
@@ -298,7 +308,7 @@ ${blue(file.fileName)}
     // Update the file with the replaced result and update the results
     const newFileContents = await replace(
       file.code,
-      [file.findResults[searchResultIndex - resultNumber - 1]],
+      [findResult],
       file.filePath,
     );
     file.code = newFileContents;
@@ -430,9 +440,9 @@ async function replace(
   try {
     await writeFile(filePath, output);
   } catch (error) {
-    console.error(
-      `${red("✖")} Unable to write to file: ${filePath}, ${error.message}`,
-    );
+    nextWarning = `${red("✖")} Unable to write to file: ${filePath}, ${
+      error.message
+    }`;
   }
   return output;
 }
