@@ -1,4 +1,4 @@
-import globToRegex from "../src/globToRegex";
+import globToRegex from "../src/utils/globToRegex";
 
 describe("Test if globs correctly match the path", () => {
   test("scope matches same pattern", () => {

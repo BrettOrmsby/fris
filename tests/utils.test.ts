@@ -1,4 +1,4 @@
-import { escapeStringToRegex } from "../src/utils";
+import escapeStringToRegex from "../src/utils/escapeStringToRegex";
 
 describe("Test if string regex is escaped properly", () => {
   test("Regex should match same string", () => {
