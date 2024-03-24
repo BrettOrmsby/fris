@@ -1,10 +1,11 @@
 /*
  * Find all matching indices of a pattern on code
  */
+import type { BundledLanguage, ThemedTokenExplanation } from "shiki";
+import { FRISArgs } from "./getCLIArgs.js";
 import globToRegex from "../utils/globToRegex.js";
 import tokenize from "./tokenize.js";
 import escapeStringToRegex from "../utils/escapeStringToRegex.js";
-import type { BundledLanguage, ThemedTokenExplanation } from "shiki";
 
 export type FindOptions = {
   lang: BundledLanguage;
@@ -94,4 +95,20 @@ function explanationMatchesScopePattern(
     }
   }
   return false;
+}
+
+/*
+ * Find results using the args
+ */
+export async function findWithArgs(
+  code: string,
+  language: BundledLanguage,
+  args: FRISArgs,
+): Promise<FindResult[]> {
+  const pattern = args.regex ? new RegExp(args.find) : args.find;
+  return await find(code, pattern, {
+    lang: language,
+    scope: args.scope,
+    ignore: args.ignore,
+  });
 }
